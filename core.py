@@ -277,14 +277,61 @@ def create_image_with_text(template_image, title, subtitle="", layout_horizontal
         draw = ImageDraw.Draw(image)
         
         # フォント設定（高解像度対応 - scale=2で120px/80px）
-        font_path = "/Users/ryosuke884/Desktop/Obsidian/03_Output/App/Template-Image-Creator/fonts/ZenOldMincho-Bold.ttf"
+        # 動的にフォントパスを取得
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        font_path = os.path.join(current_dir, "fonts", "ZenOldMincho-Bold.ttf")
+        
         try:
-            # 高解像度用にフォントサイズを2倍に調整
-            title_font = ImageFont.truetype(font_path, 120)  # 60px → 120px
-            subtitle_font = ImageFont.truetype(font_path, 80)  # 40px → 80px
-        except:
-            title_font = ImageFont.load_default()
-            subtitle_font = ImageFont.load_default()
+            # フォントファイルの存在確認
+            if os.path.exists(font_path):
+                # 高解像度用にフォントサイズを2倍に調整
+                title_font = ImageFont.truetype(font_path, 120)  # 60px → 120px
+                subtitle_font = ImageFont.truetype(font_path, 80)  # 40px → 80px
+                print(f"✅ フォント読み込み成功: {font_path}")
+            else:
+                print(f"❌ フォントファイルが見つかりません: {font_path}")
+                raise FileNotFoundError("Font file not found")
+        except Exception as e:
+            print(f"⚠️ フォント読み込みエラー: {e}")
+            print("フォールバック処理を開始します")
+            
+            # フォールバック1: システムフォントを試行
+            fallback_fonts = [
+                # macOS
+                "/System/Library/Fonts/Arial Unicode.ttc",
+                "/System/Library/Fonts/Hiragino Sans GB.ttc",
+                # Linux (Ubuntu/Streamlit Cloud)
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+                "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+                "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+                # Windows
+                "C:\\Windows\\Fonts\\arial.ttf",
+                "C:\\Windows\\Fonts\\meiryo.ttc"
+            ]
+            
+            font_loaded = False
+            for fallback_font in fallback_fonts:
+                try:
+                    if os.path.exists(fallback_font):
+                        title_font = ImageFont.truetype(fallback_font, 120)
+                        subtitle_font = ImageFont.truetype(fallback_font, 80)
+                        print(f"✅ フォールバックフォント使用: {fallback_font}")
+                        font_loaded = True
+                        break
+                except:
+                    continue
+            
+            # フォールバック2: デフォルトフォント（最後の手段）
+            if not font_loaded:
+                print("⚠️ すべてのフォント読み込みに失敗。デフォルトフォントを使用します")
+                try:
+                    # デフォルトフォントでもサイズ指定を試行
+                    title_font = ImageFont.load_default(size=120)
+                    subtitle_font = ImageFont.load_default(size=80)
+                except:
+                    # 古いPillowバージョンの場合
+                    title_font = ImageFont.load_default()
+                    subtitle_font = ImageFont.load_default()
         
         # 画像サイズを取得
         img_width, img_height = image.size
