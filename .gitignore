@@ -1,0 +1,25 @@
+# 環境変数ファイル
+.env
+
+# Python関連
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+env/
+
+# 生成された画像
+img/*.png
+img/*.jpg
+img/*.jpeg
+
+# システムファイル
+.DS_Store
+Thumbs.db
+
+# エディタ関連
+.vscode/
+.idea/
+*.swp
+*.swo 
